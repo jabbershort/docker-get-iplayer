@@ -1,0 +1,11 @@
+version: '3'
+services:
+  get-iplayer:
+    build: .
+    ports:
+      - 1935:1935
+    volumes:
+      - /path/to/config:/root/.get_iplayer
+      - /path/to/downloads:/data/output
+    restart: unless-stopped
+

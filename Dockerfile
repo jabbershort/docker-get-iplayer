@@ -1,26 +1,23 @@
-FROM alpine:3.10
-MAINTAINER barwell
+FROM alpine:3.12
 
-RUN apk --update add \
-    ffmpeg \
-    openssl \
-    perl-mojolicious \
-    perl-lwp-protocol-https \
-    perl-xml-simple \
-    perl-xml-libxml
+RUN apk add --no-cache \
+	ffmpeg \
+	openssl \
+	perl-mojolicious \
+	perl-lwp-protocol-https \
+	perl-xml-simple \
+	perl-xml-libxml \
+	perl-cgi-session \
+	perl-cgi
+
 RUN apk add atomicparsley --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --allow-untrusted
 
 RUN mkdir -p /data/output /data/config
 
-WORKDIR /app
+RUN wget https://raw.githubusercontent.com/get-iplayer/get_iplayer/master/get_iplayer
+RUN install -m 755 ./get_iplayer /usr/local/bin
 
-ENV GET_IPLAYER_VERSION=3.27
+RUN wget https://raw.githubusercontent.com/get-iplayer/get_iplayer/master/get_iplayer.cgi
+RUN install -m 755 ./get_iplayer.cgi /usr/local/bin
 
-RUN wget -qO- https://github.com/get-iplayer/get_iplayer/archive/v${GET_IPLAYER_VERSION}.tar.gz | tar -xvz -C /tmp && \
-    mv /tmp/get_iplayer-${GET_IPLAYER_VERSION}/get_iplayer . && \
-    rm -rf /tmp/* && \
-    chmod +x ./get_iplayer
-
-ENTRYPOINT ["./get_iplayer", "--ffmpeg", "/usr/bin/ffmpeg", "--profile-dir", "/data/config", "--output", "/data/output"]
-
-CMD ["-h"]
+CMD get_iplayer --prefs-add --output /data/output && get_iplayer.cgi --listen 0.0.0.0 --port 1935
